@@ -35,7 +35,7 @@ function Product(id, name, price, expiryDate) {
 const dateDiff = (date1, date2) => {
     let timeDiff = Math.abs(date2.getTime() - date1.getTime())
 
-    let diffDays = Math.ceill(timeDiff / (1000 * 3600 * 24))
+    let diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24))
 
     return diffDays
 };
@@ -269,7 +269,7 @@ const findPointsToBill = (roundedTotal) => {
 
 // Complete this function
 const findPointsForExpDate = (prod) => {
-    return prod.dyasToExpire < 30 ? 10 : 0;
+    return prod.daysToExpire < 30 ? 10 : 0;
 };
 
 
@@ -277,10 +277,12 @@ const calculatePoints = (prod, tBill) => {
     let pointsToBill = findPointsToBill(Math.round(tBill));
     let pointsForExpDate = findPointsForExpDate(prod);
     player.score = player.score + pointsToBill + pointsForExpDate
-    if (prod.isBonus) {
-        player.addPoints(prod.points)
-    } else {
-        player.deductPoints(prod.points)
+    if (prod instanceof MagicProduct) {
+        if (prod.isBonus) {
+            player.addPoints(prod.points)
+        } else {
+            player.deductPoints(prod.points)
+        }
     }
 };
 
@@ -321,7 +323,7 @@ function init(data) {
     const shop = (prodList, tBill, lastProd) => {
         let totalBill = tBill;
         const prId = generateProductId();
-        let product = Object.is(lastProd, undefined) ? lastProd : getProduct(prodList, prId); // Assign the value of product here
+        let product = !Object.is(lastProd, undefined) ? lastProd : getProduct(prodList, prId); // Assign the value of product here
         let productDetails = product.getDetails(); // Assign the value of productDetails here
 
         rl.question(`You can buy - ${productDetails}.\n Do you want to buy this item <Y/N>? `.yellow, function (option) {
@@ -331,6 +333,7 @@ function init(data) {
                 totalBill = calculateBill(product, totalBill);
                 calculatePoints(product, totalBill);
                 console.log(`${player.name} you earned ${player.getCurrentScore()} points!`.bold);
+                console.log(player.getCurrentScore())
                 if (player.score >= 500) {
                     // Define and set new property status in the player object here
                     Object.defineProperty(player, `status`, { value: "Shopping Master"})
@@ -365,7 +368,7 @@ function init(data) {
         let playerRating = new Rating();
         rl.question("How would you rate this game on a scale of 1-10 (1 being the lowest)?:", function (r) {
             if (r == "" || isNaN(r) || r == 0 || r > 10) {
-                console.log("Invalid rating! Please nter a number from 1 - 10".red);
+                console.log("Invalid rating! Please enter a number from 1 - 10".red);
                 rateAndExit();
             } else {
                 // Call rating setter method of playerRating to set user entered rate value here
